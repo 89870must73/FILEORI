@@ -1067,10 +1067,6 @@ function ScriptMessage(){
  echo -e ""
 }
 
-function InstBadVPN(){
- # Pull BadVPN Binary 64bit or 32bit
-if [ "$(getconf LONG_BIT)" == "64" ]; then
- 
 #install badvpn deb/ubun
 apt-get install cmake make gcc -y
 cd
