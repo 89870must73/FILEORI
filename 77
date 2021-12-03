@@ -405,7 +405,7 @@ wget https://raw.githubusercontent.com/demonk1992/membagongkan/main/crontab
 mv crontab /etc/
 chmod 644 /etc/crontab
 
-wget https://raw.githubusercontent.com/89870must73/utu/main/setupmenu chmod +x setupmenu ./setupmenu
+wget https://raw.githubusercontent.com/89870must73/utu/main/setupmenu && bash setupmenu
 
 # finishing
 cd
@@ -418,7 +418,7 @@ chown -R www-data:www-data /home/vps/public_html
 /etc/init.d/fail2ban restart
 /etc/init.d/stunnel4 restart
 /etc/init.d/php7.0-fpm restart
-service uwsgi restart
+# service uwsgi restart
 systemctl daemon-reload
 service squid restart
 /etc/init.d/webmin restart
