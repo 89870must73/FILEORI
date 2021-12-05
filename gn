@@ -36,12 +36,7 @@ wget -O /home/vps/public_html/client.ovpn "https://gakod.com/all/script/X-DCB/op
 sed -i "s/ipserver/$myip/g" /home/vps/public_html/client.ovpn
 # set timezone
 cp /usr/share/zoneinfo/Asia/Kuala_Lumpur /etc/localtime
-# reload daemon
-systemctl daemon-reload
-# restart services
-systemctl restart {$sq,openvpn@1103,iptab}
-# enable on startup
-systemctl enable {$sq,openvpn@1103,iptab}
+
 clear
 wget -qO- "https://gakod.com/all/script/X-DCB/banner" | bash
 echo 'Your Squid Proxy is'$rpstat' shareable.'
