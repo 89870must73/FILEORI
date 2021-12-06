@@ -283,36 +283,33 @@ myOpenVPNconf
 cat <<'myOpenVPNconf2' > /etc/openvpn/server_udp.conf
 # OpenVPN UDP
 port OVPNUDP
-dev tun
 proto udp
 dev tun
-dev-type tun
-sndbuf 0
-rcvbuf 0
+user nobody
+group nogroup
+persist-key
+persist-tun
+keepalive 10 120
+topology subnet
+server 10.8.0.0 255.255.255.0
+ifconfig-pool-persist ipp.txt
+push "dhcp-option DNS 1.0.0.1"
+push "dhcp-option DNS 1.1.1.1"
+push "redirect-gateway def1 bypass-dhcp" 
 crl-verify crl.pem
 ca ca.crt
 cert server.crt
 key server.key
 tls-auth tls-auth.key 0
 dh dh.pem
-topology subnet
-server 10.9.0.0 255.255.255.0
-ifconfig-pool-persist ipp.txt
-push "redirect-gateway def1 bypass-dhcp"
-push "dhcp-option DNS 8.8.8.8"
-push "dhcp-option DNS 8.8.4.4"
-keepalive 10 120
-cipher AES-256-CBC
 auth SHA256
-comp-lzo
-user nobody
-group nogroup
-persist-tun
-status openvpn-status.log
-verb 2
-mute 3
+cipher AES-128-CBC
+tls-server
+tls-version-min 1.2
+tls-cipher TLS-DHE-RSA-WITH-AES-128-GCM-SHA256
+status openvpn.log
+verb 3
 plugin /etc/openvpn/openvpn-auth-pam.so /etc/pam.d/login
-verify-client-cert none
 username-as-common-name
 myOpenVPNconf2
 
@@ -671,27 +668,60 @@ NUovpn
  systemctl daemon-reload
 fi
 
- echo ipv4 >> /etc/modules
- echo ipv6 >> /etc/modules
- sysctl -w net.ipv4.ip_forward=1
- sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
- sed -i 's/#net.ipv6.conf.all.forwarding=1/net.ipv6.conf.all.forwarding=1/g' /etc/sysctl.conf
- sysctl -p
- clear
+ # iptables-persistent
+apt install iptables-persistent -y
 
-sysctl -w net.ipv4.ip_forward=1
-sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
-iptables -t nat -I POSTROUTING -s 192.168.100.0/24 -o eth0 -j MASQUERADE
-iptables -t nat -I POSTROUTING -o eth0 -j MASQUERADE
-iptables-save > /etc/iptables.up.rules
-wget -O /etc/network/if-up.d/iptables "https://raw.githubusercontent.com/ara-rangers/vps/master/iptables"
-chmod +x /etc/network/if-up.d/iptables
-sed -i 's|LimitNPROC|#LimitNPROC|g' /lib/systemd/system/openvpn@.service
-systemctl daemon-reload
+# firewall untuk memperbolehkan akses UDP dan akses jalur TCP
+
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t nat -X
+iptables -t mangle -F
+iptables -t mangle -X
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -t nat -I POSTROUTING -s 10.5.0.0/24 -o eth0 -j MASQUERADE
+iptables -t nat -I POSTROUTING -s 10.6.0.0/24 -o eth0 -j MASQUERADE
+iptables -t nat -I POSTROUTING -s 10.7.0.0/24 -o eth0 -j MASQUERADE
+iptables -t nat -I POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE
+
+iptables -A INPUT -i eth0 -m state --state NEW -p tcp --dport 3306 -j ACCEPT
+iptables -A INPUT -i eth0 -m state --state NEW -p tcp --dport 7300 -j ACCEPT
+iptables -A INPUT -i eth0 -m state --state NEW -p udp --dport 7300 -j ACCEPT
+
+iptables -t nat -I POSTROUTING -s 10.5.0.0/24 -o ens3 -j MASQUERADE
+iptables -t nat -I POSTROUTING -s 10.6.0.0/24 -o ens3 -j MASQUERADE
+iptables -t nat -I POSTROUTING -s 10.7.0.0/24 -o ens3 -j MASQUERADE
+iptables -t nat -I POSTROUTING -s 10.8.0.0/24 -o ens3 -j MASQUERADE
+
+iptables-save > /etc/iptables/rules.v4
+chmod +x /etc/iptables/rules.v4
+
+# Reload IPTables
+iptables-restore -t < /etc/iptables/rules.v4
+netfilter-persistent save
+netfilter-persistent reload
+
+# Restart service openvpn
+systemctl enable openvpn
+systemctl start openvpn
 /etc/init.d/openvpn restart
-wget -qO /etc/openvpn/openvpn.bash "https://raw.githubusercontent.com/sumailranger93/sumail/main/openvpn.bash"
-chmod +x /etc/openvpn/openvpn.bash
-bash /etc/openvpn/openvpn.bash
+
+# set iptables tambahan
+iptables -F -t nat
+iptables -X -t nat
+iptables -A POSTROUTING -t nat -j MASQUERADE
+iptables-save > /etc/iptables-opvpn.conf
+
+# Restore iptables
+wget -O /etc/network/if-up.d/iptables "https://raw.githubusercontent.com/idtunnel/sshtunnel/master/debian9/iptables-local"
+chmod +x /etc/network/if-up.d/iptables
+
+# Restore iptables rc.local
+# wget -O /etc/rc.local "https://raw.githubusercontent.com/whitevps2/sshtunnel/master/debian9/iptables-openvpn"
+# chmod +x /etc/rc.local
  
  # Starting OpenVPN server
  systemctl start openvpn@server_tcp
