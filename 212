@@ -45,7 +45,6 @@ iptables -A OUTPUT -p udp -m state --state NEW,ESTABLISHED --dport 53 -j ACCEPT
 iptables -A INPUT -p tcp -m state --state NEW,ESTABLISHED --dport 22 -j ACCEPT
 iptables -t filter -A FORWARD -j REJECT --reject-with icmp-port-unreachable
 sysctl -w net.ipv4.ip_forward=1
-' > /sbin/iptab
 # executability
 chmod +x {/sbin/iptab,/etc/systemd/system/iptab.service}
 # install squid
