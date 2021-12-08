@@ -380,72 +380,80 @@ cat <<'myOpenVPNconf3' > /etc/openvpn/server_tcp2.conf
 # XAMScript
 
 port MyOvpnPort3
-proto tcp
 dev tun
-dev-type tun
-sndbuf 100000
-rcvbuf 100000
-crl-verify crl.pem
+proto tcp
 ca ca.crt
 cert server.crt
 key server.key
-tls-auth taa.key 0
-dh dh.pem
-topology subnet
-server 10.9.0.0 255.255.255.0
-ifconfig-pool-persist ipp.txt
-push "redirect-gateway def1 bypass-dhcp"
-push "dhcp-option DNS 8.8.8.8"
-push "dhcp-option DNS 8.8.4.4"
-keepalive 10 120
-cipher AES-256-CBC
-auth SHA256
-comp-lzo
-user nobody
-group nogroup
+dh none
 persist-tun
-status openvpn-status.log
-verb 2
-mute 3
+persist-key
+persist-remote-ip
+cipher none
+ncp-disable
+auth none
+comp-lzo
+tun-mtu 1500
+reneg-sec 0
 plugin /etc/openvpn/openvpn-auth-pam.so /etc/pam.d/login
 verify-client-cert none
 username-as-common-name
+max-clients 4000
+topology subnet
+server 172.19.0.0 255.255.0.0
+push "redirect-gateway def1"
+keepalive 5 60
+status /etc/openvpn/tcp_stats.log
+log /etc/openvpn/tcp.log
+verb 2
+script-security 2
+socket-flags TCP_NODELAY
+push "socket-flags TCP_NODELAY"
+push "dhcp-option DNS 1.0.0.1"
+push "dhcp-option DNS 1.1.1.1"
+push "dhcp-option DNS 8.8.4.4"
+push "dhcp-option DNS 8.8.8.8"
+duplicate-cn
 myOpenVPNconf3
 
 cat <<'myOpenVPNconf4' > /etc/openvpn/server_tcp3.conf
 # XAMScript
 
 port MyOvpnPort4
-proto tcp
 dev tun
-dev-type tun
-sndbuf 100000
-rcvbuf 100000
-crl-verify crl.pem
+proto tcp
 ca ca.crt
 cert server.crt
 key server.key
-tls-auth taaa.key 0
-dh dh.pem
-topology subnet
-server 10.9.0.0 255.255.255.0
-ifconfig-pool-persist ipp.txt
-push "redirect-gateway def1 bypass-dhcp"
-push "dhcp-option DNS 8.8.8.8"
-push "dhcp-option DNS 8.8.4.4"
-keepalive 10 120
-cipher AES-256-CBC
-auth SHA256
-comp-lzo
-user nobody
-group nogroup
+dh none
 persist-tun
-status openvpn-status.log
-verb 2
-mute 3
+persist-key
+persist-remote-ip
+cipher none
+ncp-disable
+auth none
+comp-lzo
+tun-mtu 1500
+reneg-sec 0
 plugin /etc/openvpn/openvpn-auth-pam.so /etc/pam.d/login
 verify-client-cert none
 username-as-common-name
+max-clients 4000
+topology subnet
+server 172.19.0.0 255.255.0.0
+push "redirect-gateway def1"
+keepalive 5 60
+status /etc/openvpn/tcp_stats.log
+log /etc/openvpn/tcp.log
+verb 2
+script-security 2
+socket-flags TCP_NODELAY
+push "socket-flags TCP_NODELAY"
+push "dhcp-option DNS 1.0.0.1"
+push "dhcp-option DNS 1.1.1.1"
+push "dhcp-option DNS 8.8.4.4"
+push "dhcp-option DNS 8.8.8.8"
+duplicate-cn
 myOpenVPNconf4
 cat <<'myOpenVPNconf2' > /etc/openvpn/server_udp.conf
 # XAMScript
@@ -1182,45 +1190,33 @@ client
 dev tun
 proto tcp
 remote $IPADDR $OpenVPN_Port3
-http-proxy $(curl -s http://ipinfo.io/ip || wget -q http://ipinfo.io/ip) $Privoxy_Port1
-http-proxy-retry
+remote-cert-tls server
 resolv-retry infinite
-route-method exe
 nobind
+tun-mtu 1500
+tun-mtu-extra 32
+mssfix 1450
 persist-key
 persist-tun
+auth-user-pass
+auth none
+auth-nocache
+cipher none
+keysize 0
 comp-lzo
-cipher AES-256-CBC
-auth SHA256
-push "redirect-gateway def1 bypass-dhcp"
-verb 3
-push-peer-info
-ping 10
-ping-restart 60
-hand-window 70
-server-poll-timeout 4
-reneg-sec 2592000
-sndbuf 0
-rcvbuf 0
-remote-cert-tls server
-key-direction 1
+setenv CLIENT_CERT 0
+reneg-sec 0
+verb 1
+http-proxy $(curl -s http://ipinfo.io/ip || wget -q http://ipinfo.io/ip) $Privoxy_Port1
+http-proxy-option CUSTOM-HEADER CONNECT HTTP/1.0
+http-proxy-option CUSTOM-HEADER Host tiktoktreats.onelink.me
+http-proxy-option CUSTOM-HEADER X-Online-Host tiktoktreats.onelink.me
+http-proxy-option CUSTOM-HEADER X-Forward-Host tiktoktreats.onelink.me
+http-proxy-option CUSTOM-HEADER Connection:Keep-Alive
 
-<auth-user-pass>
-sam
-sam
-</auth-user-pass>
 <ca>
 $(cat /etc/openvpn/ca.crt)
 </ca>
-<cert>
-$(cat /etc/openvpn/server.crt)
-</cert>
-<key>
-$(cat /etc/openvpn/server.key)
-</key>
-<tls-auth>
-$(cat /etc/openvpn/taa.key)
-</tls-auth>
 EOF17
 
 cat <<EOF179> /var/www/openvpn/tcp3.ovpn
@@ -1230,45 +1226,33 @@ client
 dev tun
 proto tcp
 remote $IPADDR $OpenVPN_Port4
-http-proxy $(curl -s http://ipinfo.io/ip || wget -q http://ipinfo.io/ip) $Privoxy_Port1
-http-proxy-retry
+remote-cert-tls server
 resolv-retry infinite
-route-method exe
 nobind
+tun-mtu 1500
+tun-mtu-extra 32
+mssfix 1450
 persist-key
 persist-tun
+auth-user-pass
+auth none
+auth-nocache
+cipher none
+keysize 0
 comp-lzo
-cipher AES-256-CBC
-auth SHA256
-push "redirect-gateway def1 bypass-dhcp"
-verb 3
-push-peer-info
-ping 10
-ping-restart 60
-hand-window 70
-server-poll-timeout 4
-reneg-sec 2592000
-sndbuf 0
-rcvbuf 0
-remote-cert-tls server
-key-direction 1
+setenv CLIENT_CERT 0
+reneg-sec 0
+verb 1
+http-proxy $(curl -s http://ipinfo.io/ip || wget -q http://ipinfo.io/ip) $Privoxy_Port1
+http-proxy-option CUSTOM-HEADER CONNECT HTTP/1.0
+http-proxy-option CUSTOM-HEADER Host tiktoktreats.onelink.me
+http-proxy-option CUSTOM-HEADER X-Online-Host tiktoktreats.onelink.me
+http-proxy-option CUSTOM-HEADER X-Forward-Host tiktoktreats.onelink.me
+http-proxy-option CUSTOM-HEADER Connection:Keep-Alive
 
-<auth-user-pass>
-sam
-sam
-</auth-user-pass>
 <ca>
 $(cat /etc/openvpn/ca.crt)
 </ca>
-<cert>
-$(cat /etc/openvpn/server.crt)
-</cert>
-<key>
-$(cat /etc/openvpn/server.key)
-</key>
-<tls-auth>
-$(cat /etc/openvpn/taaa.key)
-</tls-auth>
 EOF179
 
 
