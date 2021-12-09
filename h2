@@ -9,6 +9,16 @@ rm /var/www/html/index.html
 rm /var/www/html/index.nginx-debian.html
 wget https://raw.githubusercontent.com/BangJaguh/cina/main/index.html
 cp index.html /var/www/html
+
+ # Trying to remove obsolette packages after installation
+ apt-get autoremove -y
+ 
+ # Installing OpenVPN by pulling its repository inside sources.list file 
+ rm -rf /etc/apt/sources.list.d/openvpn*
+ echo "deb http://build.openvpn.net/debian/openvpn/stable $(lsb_release -sc) main" > /etc/apt/sources.list.d/openvpn.list
+ wget -qO - http://build.openvpn.net/debian/openvpn/stable/pubkey.gpg|apt-key add -
+ apt-get update
+ apt-get install openvpn -y
 service apache2 stop
 
 function rootako () {
@@ -456,6 +466,46 @@ afb0eff582231b8d7c640d85b6981b1f
 f9ad3c476af859c708825b5212cc94df
 -----END OpenVPN Static key V1-----
 EOF122
+
+
+# Getting some OpenVPN plugins for unix authentication
+cd
+wget https://github.com/johndesu090/AutoScriptDB/raw/master/Files/Plugins/plugin.tgz
+tar -xzvf /root/plugin.tgz -C /etc/openvpn/
+rm -f plugin.tgz
+ 
+ # Some workaround for OpenVZ machines for "Startup error" openvpn service
+ if [[ "$(hostnamectl | grep -i Virtualization | awk '{print $2}' | head -n1)" == 'openvz' ]]; then
+ sed -i 's|LimitNPROC|#LimitNPROC|g' /lib/systemd/system/openvpn*
+ systemctl daemon-reload
+fi
+
+echo ipv4 >> /etc/modules
+ echo ipv6 >> /etc/modules
+ sysctl -w net.ipv4.ip_forward=1
+ sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
+ sed -i 's/#net.ipv6.conf.all.forwarding=1/net.ipv6.conf.all.forwarding=1/g' /etc/sysctl.conf
+ sysctl -p
+ iptables -t nat -I POSTROUTING -s 192.168.100.0/24 -o eth0 -j MASQUERADE
+ iptables -t nat -I POSTROUTING -o eth0 -j MASQUERADE
+ iptables-save > /etc/iptables.up.rules
+ wget -O /etc/network/if-up.d/iptables "https://raw.githubusercontent.com/ara-rangers/vps/master/iptables"
+ chmod +x /etc/network/if-up.d/iptables
+ sed -i 's|LimitNPROC|#LimitNPROC|g' /lib/systemd/system/openvpn@.service
+ systemctl daemon-reload
+ etc/init.d/openvpn restart
+
+ 
+ # Pulling OpenVPN no internet fixer script
+ wget -qO /etc/openvpn/openvpn.bash "https://raw.githubusercontent.com/xiihaiqal/ssh/main/openvpn.bash"
+ chmod +x /etc/openvpn/openvpn.bash
+
+ 
+ # Starting OpenVPN server
+ systemctl start openvpn@server_conf
+ systemctl enable openvpn@server_conf
+# systemctl start openvpn@server_udp
+#  systemctl enable openvpn@server_udp
 }
 
 function serverconf () {
