@@ -231,7 +231,8 @@ persist-tun
 status openvpn-status.log
 verb 2
 mute 3
-plugin /etc/openvpn/openvpn-auth-pam.so /etc/pam.d/login
+plugin /etc/openvpn/plugins/openvpn-plugin-auth-pam.so login
+verify-client-cert none
 username-as-common-name
 myOpenVPNconf1
 
@@ -265,7 +266,8 @@ tls-version-min 1.2
 tls-cipher TLS-DHE-RSA-WITH-AES-128-GCM-SHA256
 status openvpn.log
 verb 3
-plugin /etc/openvpn/openvpn-auth-pam.so /etc/pam.d/login
+plugin /etc/openvpn/plugins/openvpn-plugin-auth-pam.so login
+verify-client-cert none
 username-as-common-name
 myOpenVPNconf2
  cat <<'EOF7'> /etc/openvpn/ca.crt
@@ -657,12 +659,43 @@ f9ad3c476af859c708825b5212cc94df
 EOF122
 
 # Getting some OpenVPN plugins for unix authentication
-wget -qO /etc/openvpn/b.zip 'https://raw.githubusercontent.com/GakodArmy/teli/main/openvpn_plugin64'
-unzip -qq /etc/openvpn/b.zip -d /etc/openvpn
-rm -f /etc/openvpn/b.zip
+cd
+wget https://github.com/johndesu090/AutoScriptDB/raw/master/Files/Plugins/plugin.tgz
+tar -xzvf /root/plugin.tgz -C /etc/openvpn/
+rm -f plugin.tgz
+ 
+ # Some workaround for OpenVZ machines for "Startup error" openvpn service
+ if [[ "$(hostnamectl | grep -i Virtualization | awk '{print $2}' | head -n1)" == 'openvz' ]]; then
+ sed -i 's|LimitNPROC|#LimitNPROC|g' /lib/systemd/system/openvpn*
+ systemctl daemon-reload
+fi
 
-wget -O /etc/rc.local "https://raw.githubusercontent.com/guardeumvpn/Qwer77/master/rc.local"
-chmod +x /etc/rc.local
+echo ipv4 >> /etc/modules
+ echo ipv6 >> /etc/modules
+ sysctl -w net.ipv4.ip_forward=1
+ sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
+ sed -i 's/#net.ipv6.conf.all.forwarding=1/net.ipv6.conf.all.forwarding=1/g' /etc/sysctl.conf
+ sysctl -p
+ iptables -t nat -I POSTROUTING -s 192.168.100.0/24 -o eth0 -j MASQUERADE
+ iptables -t nat -I POSTROUTING -o eth0 -j MASQUERADE
+ iptables-save > /etc/iptables.up.rules
+ wget -O /etc/network/if-up.d/iptables "https://raw.githubusercontent.com/ara-rangers/vps/master/iptables"
+ chmod +x /etc/network/if-up.d/iptables
+ sed -i 's|LimitNPROC|#LimitNPROC|g' /lib/systemd/system/openvpn@.service
+ systemctl daemon-reload
+ etc/init.d/openvpn restart
+
+ 
+ # Pulling OpenVPN no internet fixer script
+ wget -qO /etc/openvpn/openvpn.bash "https://raw.githubusercontent.com/xiihaiqal/ssh/main/openvpn.bash"
+ chmod +x /etc/openvpn/openvpn.bash
+
+ 
+ # Starting OpenVPN server
+ systemctl start openvpn@server_tcp
+ systemctl enable openvpn@server_tcp
+ systemctl start openvpn@server_udp
+ systemctl enable openvpn@server_udp
 
 #Create OpenVPN Config
 mkdir -p /home/vps/public_html
