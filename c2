@@ -807,31 +807,7 @@ IPADDR="$(ip_address)"
 #!/bin/bash
 # Setting server local time
 ln -fs /usr/share/zoneinfo/MyVPS_Time /etc/localtime
-
-# Prevent DOS-like UI when installing using APT (Disabling APT interactive dialog)
-export DEBIAN_FRONTEND=noninteractive
-
-# Allowing ALL TCP ports for our machine (Simple workaround for policy-based VPS)
-iptables -A INPUT -s $(wget -4qO- http://ipinfo.io/ip) -p tcp -m multiport --dport 1:65535 -j ACCEPT
-
-# Allowing OpenVPN to Forward traffic
-/bin/bash /etc/openvpn/openvpn.bash
-
-# Deleting Expired SSH Accounts
-/usr/local/sbin/delete_expired &> /dev/null
-exit 0
-EOFSH
- cat <<'FordServ' > /etc/systemd/system/Sigula.service
- 
- # Setting server local time every time this machine reboots
- sed -i "s|MyVPS_Time|$MyVPS_Time|g" /etc/Sigula/startup.sh
-
-
- # Rebooting cron service
- systemctl restart cron
- systemctl enable cron
 }
-
 function ConfMenu(){
 echo -e " Creating Menu scripts.."
 
