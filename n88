@@ -19,28 +19,12 @@ export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com);
 MYIP2="s/xxxxxxxxx/$MYIP/g";
-cd /root
-wget "https://raw.githubusercontent.com/radzvpn/TNTNOLOADDNS/master/plugin.tgz"
 
 # disable ipv6
 echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
 
 # set time GMT +7
 ln -fs /usr/share/zoneinfo/Asia/Kuala_Lumpur /etc/localtime
-
-# install webmin
-cd
-wget "https://raw.githubusercontent.com/radzvpn/TNTNOLOADDNS/master/webmin_1.801_all.deb"
-dpkg --install webmin_1.801_all.deb;
-apt-get -y -f install;
-sed -i 's/ssl=1/ssl=0/g' /etc/webmin/miniserv.conf
-rm /root/webmin_1.801_all.deb
-service webmin restart
-
-# install dropbear
-sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=442/g' /etc/default/dropbear
-echo "/bin/false" >> /etc/shells
 
 # install unzip
 apt-get install unzip
@@ -617,7 +601,7 @@ client
 dev tun
 proto tcp
 remote $MYIP:$OpenVPN_Port1@devvault.digi.com.my
-http-proxy $(curl -s http://ipinfo.io/ip || wget -q http://ipinfo.io/ip) 8080
+http-proxy $MYIP 8080
 http-proxy-retry
 resolv-retry infinite
 route-method exe
@@ -658,32 +642,140 @@ $(cat /etc/openvpn/ta.key)
 </tls-auth>
 EOF1
 
-# Configure Stunnel
-sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
-openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -sha256 -subj '/CN=127.0.0.1/O=localhost/C=PH' -keyout /etc/stunnel/stunnel.pem -out /etc/stunnel/stunnel.pem
-cat > /etc/stunnel/stunnel.conf <<-END
+cat > /etc/openvpn/ssl.ovpn << EOF2
+# Created by Gakod keningau
 
-sslVersion = all
-pid = /stunnel.pid
+client
+dev tun
+proto tcp
+remote 127.0.0.1 $OpenVPN_Port1
+route $MYIP 255.255.255.255 net_gateway 
+resolv-retry infinite
+route-method exe
+nobind
+persist-key
+persist-tun
+comp-lzo
+cipher AES-256-CBC
+auth SHA256
+push "redirect-gateway def1 bypass-dhcp"
+verb 3
+push-peer-info
+ping 10
+ping-restart 60
+hand-window 70
+server-poll-timeout 4
+reneg-sec 2592000
+sndbuf 0
+rcvbuf 0
+remote-cert-tls server
+key-direction 1
+<auth-user-pass>
+sam
+sam
+</auth-user-pass>
+<ca>
+$(cat /etc/openvpn/ca.crt)
+</ca>
+<cert>
+$(cat /etc/openvpn/server.crt)
+</cert>
+<key>
+$(cat /etc/openvpn/server.key)
+</key>
+<tls-auth>
+$(cat /etc/openvpn/ta.key)
+</tls-auth>
+EOF2
+
+cat > /etc/openvpn/udp.ovpn << EOF3
+# Created by Gakod keningau
+
+client
+dev tun
+proto udp
+remote $MYIP $OpenVPN_Port2
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+remote-cert-tls server
+verify-x509-name server_ADBtkp0yL46HLXPb name
+auth SHA256
+auth-nocache
+cipher AES-128-CBC
+tls-client
+tls-version-min 1.2
+tls-cipher TLS-DHE-RSA-WITH-AES-128-GCM-SHA256
+setenv opt block-outside-dns
+verb 3
+auth-user-pass
+key-direction 1
+<ca>
+$(cat /etc/openvpn/ca.crt)
+</ca>
+<cert>
+$(cat /etc/openvpn/server.crt)
+</cert>
+<key>
+$(cat /etc/openvpn/server.key)
+</key>
+<tls-auth>
+$(cat /etc/openvpn/tls-auth.key)
+</tls-auth>
+EOF3
+
+
+# setting port ssh
+sed -i '/#Port 22/a Port 143' /etc/ssh/sshd_config
+sed -i '/#Port 22/a Port  90' /etc/ssh/sshd_config
+sed -i 's/#Port 22/Port  22/g' /etc/ssh/sshd_config
+/etc/init.d/ssh restart
+
+# install dropbear
+apt-get -y install dropbear
+sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
+sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=442/g' /etc/default/dropbear
+sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 109 -p 110 -p 80"/g' /etc/default/dropbear
+echo "/bin/false" >> /etc/shells
+/etc/init.d/dropbear restart
+
+# install stunnel
+apt-get install stunnel4 -y
+cat > /etc/stunnel/stunnel.conf <<-END
+cert = /etc/stunnel/stunnel.pem
+client = no
+socket = a:SO_REUSEADDR=1
 socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
-client = no
-
-[openvpn]
-accept = 1153
-connect = 127.0.0.1:443
-cert = /etc/stunnel/stunnel.pem
 
 [dropbear]
-accept = 444
+accept = 443
 connect = 127.0.0.1:442
-cert = /etc/stunnel/stunnel.pem
+
+[openvpn]
+accept = 990
+connect = 127.0.0.1:1103
 
 END
 
+# make a certificate
+openssl genrsa -out key.pem 2048
+openssl req -new -x509 -key key.pem -out cert.pem -days 1095 \
+-subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=$email"
+cat key.pem cert.pem >> /etc/stunnel/stunnel.pem
+
+# configure stunnel
+sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
+cd /etc/stunnel/
+wget -O /etc/stunnel/ssl.conf "https://raw.githubusercontent.com/azalea910512/kia/main/ssl/ssl.conf"
+sed -i $MYIP2 /etc/stunnel;
+cp ssl.conf /home/vps/public_html/
+cd
+
 #Setting UFW
 ufw allow ssh
-ufw allow 443/tcp
+ufw allow 1103/tcp
 sed -i 's|DEFAULT_INPUT_POLICY="DROP"|DEFAULT_INPUT_POLICY="ACCEPT"|' /etc/default/ufw
 sed -i 's|DEFAULT_FORWARD_POLICY="DROP"|DEFAULT_FORWARD_POLICY="ACCEPT"|' /etc/default/ufw
 
@@ -1256,55 +1348,10 @@ wget -O /root/.bashrc "https://raw.githubusercontent.com/KeningauVPS/sslmode/mas
 sudo apt-get -y install ruby
 sudo gem install lolcat
 
-# download script
-cd /usr/bin
-wget -O menu "https://raw.githubusercontent.com/acillsadank/install/master/menu.sh"
-wget -O edit "https://raw.githubusercontent.com/acillsadank/install/master/edit-ports.sh"
-wget -O edit-dropbear "https://raw.githubusercontent.com/acillsadank/install/master/edit-dropbear.sh"
-wget -O edit-openssh "https://raw.githubusercontent.com/acillsadank/install/master/edit-openssh.sh"
-wget -O edit-openvpn "https://raw.githubusercontent.com/acillsadank/install/master/edit-openvpn.sh"
-wget -O edit-squid3 "https://raw.githubusercontent.com/acillsadank/install/master/edit-squid3.sh"
-wget -O edit-stunnel4 "https://raw.githubusercontent.com/acillsadank/install/master/edit-stunnel4.sh"
-wget -O show-ports "https://raw.githubusercontent.com/acillsadank/install/master/show-ports.sh"
-wget -O usernew "https://raw.githubusercontent.com/acillsadank/install/master/usernew.sh"
-wget -O trial "https://raw.githubusercontent.com/acillsadank/install/master/trial.sh"
-wget -O delete "https://raw.githubusercontent.com/acillsadank/install/master/delete.sh"
-wget -O check "https://raw.githubusercontent.com/acillsadank/install/master/user-login.sh"
-wget -O member "https://raw.githubusercontent.com/acillsadank/install/master/user-list.sh"
-wget -O restart "https://raw.githubusercontent.com/acillsadank/install/master/restart.sh"
-wget -O speedtest "https://raw.githubusercontent.com/acillsadank/install/master/speedtest_cli.py"
-wget -O info "https://raw.githubusercontent.com/acillsadank/install/master/info.sh"
-wget -O about "https://raw.githubusercontent.com/acillsadank/install/master/about.sh"
-
-chmod +x menu
-chmod +x edit
-chmod +x edit-dropbear
-chmod +x edit-openssh
-chmod +x edit-openvpn
-chmod +x edit-squid3
-chmod +x edit-stunnel4
-chmod +x show-ports
-chmod +x usernew
-chmod +x trial
-chmod +x delete
-chmod +x check
-chmod +x member
-chmod +x restart
-chmod +x speedtest
-chmod +x info
-chmod +x about
+wget https://raw.githubusercontent.com/89870must73/utu/main/setupmenu && bash setupmenu
 
 # add eth0 to vnstat
 vnstat -u -i eth0
-
-# configs
-mv /etc/openvpn/sam.ovpn /home/vps/public_html/sam.ovpn
-mv /etc/openvpn/sam2.ovpn /home/vps/public_html/sam2.ovpn
-mv /etc/openvpn/sam1.ovpn /home/vps/public_html/sam1.ovpn
-
-# compress configs
-cd /home/vps/public_html
-zip configs.zip client.ovpn sam.ovpn sam1.ovpn sam2.ovpn
 
 # install libxml-parser
 apt-get install -y libxml-parser-perl
@@ -1373,5 +1420,5 @@ echo "   - Webmin                  : http://$MYIP:10000/"  | tee -a log-install.
 echo ""
 echo "------------------------------ Remodified by EMBEX --------------------------"
 echo "--------------------------Rebooting your VPS in 60 seconds-----------------------"
-sleep 3
-reboot
+sleep 1
+
