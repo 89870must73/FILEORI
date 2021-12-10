@@ -1,10 +1,10 @@
 #!/bin/sh
 
 apt update && apt upgrade
-
 # OpenVPN Ports
 OpenVPN_Port1='1103'
 OpenVPN_Port2='25222' # take note when you change this port, openvpn sun noload config will not work
+
 
 wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg|apt-key add -
 sleep 2
@@ -19,12 +19,28 @@ export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
 MYIP=$(wget -qO- ipv4.icanhazip.com);
 MYIP2="s/xxxxxxxxx/$MYIP/g";
+cd /root
+wget "https://raw.githubusercontent.com/radzvpn/TNTNOLOADDNS/master/plugin.tgz"
 
 # disable ipv6
 echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
 
 # set time GMT +7
 ln -fs /usr/share/zoneinfo/Asia/Kuala_Lumpur /etc/localtime
+
+# install webmin
+cd
+wget "https://raw.githubusercontent.com/radzvpn/TNTNOLOADDNS/master/webmin_1.801_all.deb"
+dpkg --install webmin_1.801_all.deb;
+apt-get -y -f install;
+sed -i 's/ssl=1/ssl=0/g' /etc/webmin/miniserv.conf
+rm /root/webmin_1.801_all.deb
+service webmin restart
+
+# install dropbear
+sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
+sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=442/g' /etc/default/dropbear
+echo "/bin/false" >> /etc/shells
 
 # install unzip
 apt-get install unzip
@@ -725,53 +741,33 @@ $(cat /etc/openvpn/tls-auth.key)
 </tls-auth>
 EOF3
 
-
-# setting port ssh
-sed -i '/#Port 22/a Port 143' /etc/ssh/sshd_config
-sed -i '/#Port 22/a Port  90' /etc/ssh/sshd_config
-sed -i 's/#Port 22/Port  22/g' /etc/ssh/sshd_config
-/etc/init.d/ssh restart
-
-# install dropbear
-apt-get -y install dropbear
-sed -i 's/NO_START=1/NO_START=0/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_PORT=22/DROPBEAR_PORT=442/g' /etc/default/dropbear
-sed -i 's/DROPBEAR_EXTRA_ARGS=/DROPBEAR_EXTRA_ARGS="-p 109 -p 110 -p 80"/g' /etc/default/dropbear
-echo "/bin/false" >> /etc/shells
-/etc/init.d/dropbear restart
-
-# install stunnel
-apt-get install stunnel4 -y
+# Configure Stunnel
+sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
+openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -sha256 -subj '/CN=127.0.0.1/O=localhost/C=PH' -keyout /etc/stunnel/stunnel.pem -out /etc/stunnel/stunnel.pem
 cat > /etc/stunnel/stunnel.conf <<-END
-cert = /etc/stunnel/stunnel.pem
-client = no
-socket = a:SO_REUSEADDR=1
+
+sslVersion = all
+pid = /stunnel.pid
 socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
-
-[dropbear]
-accept = 443
-connect = 127.0.0.1:442
+client = no
 
 [openvpn]
-accept = 990
+accept = 1153
+connect = 127.0.0.1:443
+cert = /etc/stunnel/stunnel.pem
+
+[dropbear]
+accept = 444
+connect = 127.0.0.1:442
+cert = /etc/stunnel/stunnel.pem
+
+
+[openvpn]
+accept = 587
 connect = 127.0.0.1:1103
-
+cert = /etc/stunnel/stunnel.pem
 END
-
-# make a certificate
-openssl genrsa -out key.pem 2048
-openssl req -new -x509 -key key.pem -out cert.pem -days 1095 \
--subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=$email"
-cat key.pem cert.pem >> /etc/stunnel/stunnel.pem
-
-# configure stunnel
-sed -i 's/ENABLED=0/ENABLED=1/g' /etc/default/stunnel4
-cd /etc/stunnel/
-wget -O /etc/stunnel/ssl.conf "https://raw.githubusercontent.com/azalea910512/kia/main/ssl/ssl.conf"
-sed -i $MYIP2 /etc/stunnel;
-cp ssl.conf /home/vps/public_html/
-cd
 
 #Setting UFW
 ufw allow ssh
@@ -1350,8 +1346,19 @@ sudo gem install lolcat
 
 wget https://raw.githubusercontent.com/89870must73/utu/main/setupmenu && bash setupmenu
 
+
+
 # add eth0 to vnstat
 vnstat -u -i eth0
+
+# configs
+mv /etc/openvpn/sam.ovpn /home/vps/public_html/sam.ovpn
+mv /etc/openvpn/sam2.ovpn /home/vps/public_html/sam2.ovpn
+mv /etc/openvpn/sam1.ovpn /home/vps/public_html/sam1.ovpn
+
+# compress configs
+cd /home/vps/public_html
+zip configs.zip client.ovpn sam.ovpn sam1.ovpn sam2.ovpn
 
 # install libxml-parser
 apt-get install -y libxml-parser-perl
@@ -1420,5 +1427,5 @@ echo "   - Webmin                  : http://$MYIP:10000/"  | tee -a log-install.
 echo ""
 echo "------------------------------ Remodified by EMBEX --------------------------"
 echo "--------------------------Rebooting your VPS in 60 seconds-----------------------"
-sleep 1
-
+sleep 3
+reboot
