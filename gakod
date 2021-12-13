@@ -1,5 +1,5 @@
 #!/bin/bash
-#decript @conectedmx_vip
+#decript @GAKOD_VVIP
 # Debian VPS Script
 # Script created by Bonveio
 # Do not resell and redistribute this script
@@ -472,7 +472,7 @@ proto tcp
 ca /etc/openvpn/ca.crt
 cert /etc/openvpn/bonvscripts.crt
 key /etc/openvpn/bonvscripts.key
-tls-auth /etc/openvpn/ta.key 0
+# tls-auth /etc/openvpn/ta.key 0
 dh none
 persist-tun
 persist-key
@@ -926,7 +926,10 @@ http-proxy-option CUSTOM-HEADER Host redirect.googlevideo.com
 http-proxy-option CUSTOM-HEADER X-Forward-Host redirect.googlevideo.com
 http-proxy-option CUSTOM-HEADER X-Forwarded-For redirect.googlevideo.com
 http-proxy-option CUSTOM-HEADER Referrer redirect.googlevideo.com
-auth-user-pass
+<auth-user-pass>
+sam
+sam
+</auth-user-pass>
 EOFgtm
 
 cat <<"EOFsun" > /var/www/openvpn/SunConfig.ovpn
@@ -964,7 +967,10 @@ http-proxy-option CUSTOM-HEADER Host www.viber.com.edgekey.net
 http-proxy-option CUSTOM-HEADER X-Forward-Host www.viber.com.edgekey.net
 http-proxy-option CUSTOM-HEADER X-Forwarded-For www.viber.com.edgekey.net
 http-proxy-option CUSTOM-HEADER Referrer www.viber.com.edgekey.net
-auth-user-pass
+<auth-user-pass>
+sam
+sam
+</auth-user-pass>
 EOFsun
 
 cat <<"EOFsunnl" > /var/www/openvpn/SunNoloadConfig.ovpn
@@ -1000,6 +1006,10 @@ reneg-sec 0
 verb 0
 nice -20
 log /dev/null
+<auth-user-pass>
+sam
+sam
+</auth-user-pass>
 EOFsunnl
 cat <<"EOFohp1" > /var/www/openvpn/OHPTCPConfig.ovpn
 # OpenVPN Server build vOPENVPN_SERVER_VERSION
@@ -1022,7 +1032,7 @@ proto tcp
 # We can also play with CRLFs
 #remote "HEAD https://ajax.googleapis.com HTTP/1.1/r/n/r/n"
 # Every types of Broken remote line setups/crlfs/payload are accepted, just put them inside of double-quotes
-remote "https://www.phcorner.net"
+remote "https://devvault.digi.com.my"
 ## use this line to modify OpenVPN remote port (this will serve as our fake ovpn port)
 port 443
 
@@ -1051,7 +1061,10 @@ auth none
 auth-nocache
 cipher none
 setenv CLIENT_CERT 0
-auth-user-pass
+<auth-user-pass>
+sam
+sam
+</auth-user-pass>
 EOFohp1
 cat <<"EOFsunudp1" > /var/www/openvpn/UDPConfig.ovpn
 # OpenVPN Server build vOPENVPN_SERVER_VERSION
@@ -1082,7 +1095,10 @@ auth none
 auth-nocache
 cipher none
 setenv CLIENT_CERT 0
-auth-user-pass
+<auth-user-pass>
+sam
+sam
+</auth-user-pass>
 EOFsunudp1
 
 cat <<"EOFgtmec" > /var/www/openvpn/GTMConfig_EC.ovpn
@@ -1115,13 +1131,10 @@ setenv CLIENT_CERT 0
 tls-client
 tls-version-min 1.2
 tls-cipher TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256
-http-proxy-option VERSION 1.1
-http-proxy-option AGENT Chrome/80.0.3987.87
-http-proxy-option CUSTOM-HEADER Host redirect.googlevideo.com
-http-proxy-option CUSTOM-HEADER X-Forward-Host redirect.googlevideo.com
-http-proxy-option CUSTOM-HEADER X-Forwarded-For redirect.googlevideo.com
-http-proxy-option CUSTOM-HEADER Referrer redirect.googlevideo.com
-auth-user-pass
+<auth-user-pass>
+sam
+sam
+</auth-user-pass>
 EOFgtmec
 
 cat <<"EOFsunec" > /var/www/openvpn/SunConfig_EC.ovpn
@@ -1156,13 +1169,10 @@ setenv CLIENT_CERT 0
 tls-client
 tls-version-min 1.2
 tls-cipher TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256
-http-proxy-option VERSION 1.1
-http-proxy-option AGENT Chrome/80.0.3987.87
-http-proxy-option CUSTOM-HEADER Host www.viber.com.edgekey.net
-http-proxy-option CUSTOM-HEADER X-Forward-Host www.viber.com.edgekey.net
-http-proxy-option CUSTOM-HEADER X-Forwarded-For www.viber.com.edgekey.net
-http-proxy-option CUSTOM-HEADER Referrer www.viber.com.edgekey.net
-auth-user-pass
+<auth-user-pass>
+sam
+sam
+</auth-user-pass>
 EOFsunec
 
 cat <<"EOFsunnlec" > /var/www/openvpn/SunNoloadConfig_EC.ovpn
@@ -1190,7 +1200,6 @@ tls-client
 tls-version-min 1.2
 tls-cipher TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256
 persist-tun
-auth-user-pass
 auth none
 auth-nocache
 auth-retry interact
@@ -1201,6 +1210,10 @@ reneg-sec 0
 verb 0
 nice -20
 log /dev/null
+<auth-user-pass>
+sam
+sam
+</auth-user-pass>
 EOFsunnlec
 
 cat <<"EOFohp2" > /var/www/openvpn/OHPTCPConfig_EC.ovpn
@@ -1256,7 +1269,10 @@ setenv CLIENT_CERT 0
 tls-client
 tls-version-min 1.2
 tls-cipher TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256
-auth-user-pass
+<auth-user-pass>
+sam
+sam
+</auth-user-pass>
 EOFohp2
 
 cat <<"EOFsunudp2" > /var/www/openvpn/UDPConfig_EC.ovpn
@@ -1291,7 +1307,10 @@ setenv CLIENT_CERT 0
 tls-client
 tls-version-min 1.2
 tls-cipher TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256
-auth-user-pass
+<auth-user-pass>
+sam
+sam
+</auth-user-pass>
 EOFsunudp2
 
 
@@ -1306,54 +1325,63 @@ sed -i "s|IP-ADDRESS|$(ip_address)|g" /var/www/openvpn/OHPTCPConfig.ovpn
 echo -e "<ca>\n$(cat /etc/openvpn/ca.crt)\n</ca>" >> /var/www/openvpn/OHPTCPConfig.ovpn
 echo -e "<cert>\n$(cat /etc/openvpn/bonvscripts.crt)\n</cert>" >> /var/www/openvpn/OHPTCPConfig.ovpn
 echo -e "<key>\n$(cat /etc/openvpn/bonvscripts.key)\n</key>" >> /var/www/openvpn/OHPTCPConfig.ovpn
+echo -e "<tls-auth>\n$(cat /etc/openvpn/ta.key)\n</tls-auth>" >> /var/www/openvpn/OHPTCPConfig.ovpn
 
 
 sed -i "s|IP-ADDRESS|$(ip_address)|g" /var/www/openvpn/UDPConfig.ovpn
 echo -e "<ca>\n$(cat /etc/openvpn/ca.crt)\n</ca>" >> /var/www/openvpn/UDPConfig.ovpn
 echo -e "<cert>\n$(cat /etc/openvpn/bonvscripts.crt)\n</cert>" >> /var/www/openvpn/UDPConfig.ovpn
 echo -e "<key>\n$(cat /etc/openvpn/bonvscripts.key)\n</key>" >> /var/www/openvpn/UDPConfig.ovpn
+echo -e "<tls-auth>\n$(cat /etc/openvpn/ta.key)\n</tls-auth>" >> /var/www/openvpn/UDPConfig.ovpn
 
 
 sed -i "s|IP-ADDRESS|$(ip_address)|g" /var/www/openvpn/SunNoloadConfig.ovpn
 echo -e "<ca>\n$(cat /etc/openvpn/ca.crt)\n</ca>" >> /var/www/openvpn/SunNoloadConfig.ovpn
 echo -e "<cert>\n$(cat /etc/openvpn/bonvscripts.crt)\n</cert>" >> /var/www/openvpn/SunNoloadConfig.ovpn
 echo -e "<key>\n$(cat /etc/openvpn/bonvscripts.key)\n</key>" >> /var/www/openvpn/SunNoloadConfig.ovpn
+echo -e "<tls-auth>\n$(cat /etc/openvpn/ta.key)\n</tls-auth>" >> /var/www/openvpn/SunNoloadConfig.ovpn
 
 
 sed -i "s|IP-ADDRESS|$(ip_address)|g" /var/www/openvpn/SunConfig.ovpn
 echo -e "<ca>\n$(cat /etc/openvpn/ca.crt)\n</ca>" >> /var/www/openvpn/SunConfig.ovpn
 echo -e "<cert>\n$(cat /etc/openvpn/bonvscripts.crt)\n</cert>" >> /var/www/openvpn/SunConfig.ovpn
 echo -e "<key>\n$(cat /etc/openvpn/bonvscripts.key)\n</key>" >> /var/www/openvpn/SunConfig.ovpn
+echo -e "<tls-auth>\n$(cat /etc/openvpn/ta.key)\n</tls-auth>" >> /var/www/openvpn/SunConfig.ovpn
 
 
 sed -i "s|IP-ADDRESS|$(ip_address)|g" /var/www/openvpn/GTMConfig_EC.ovpn
 echo -e "<ca>\n$(cat /etc/openvpn/ec_ca.crt)\n</ca>" >> /var/www/openvpn/GTMConfig_EC.ovpn
 echo -e "<cert>\n$(cat /etc/openvpn/bonvscripts.crt)\n</cert>" >> /var/www/openvpn/GTMConfig_EC.ovpn
 echo -e "<key>\n$(cat /etc/openvpn/bonvscripts.key)\n</key>" >> /var/www/openvpn/GTMConfig_EC.ovpn
+echo -e "<tls-auth>\n$(cat /etc/openvpn/ta.key)\n</tls-auth>" >> /var/www/openvpn/GTMConfig_EC.ovpn
 
 
 sed -i "s|IP-ADDRESS|$(ip_address)|g" /var/www/openvpn/OHPTCPConfig_EC.ovpn
 echo -e "<ca>\n$(cat /etc/openvpn/ec_ca.crt)\n</ca>" >> /var/www/openvpn/OHPTCPConfig_EC.ovpn
 echo -e "<cert>\n$(cat /etc/openvpn/bonvscripts.crt)\n</cert>" >> /var/www/openvpn/OHPTCPConfig_EC.ovpn
 echo -e "<key>\n$(cat /etc/openvpn/bonvscripts.key)\n</key>" >> /var/www/openvpn/OHPTCPConfig_EC.ovpn
+echo -e "<tls-auth>\n$(cat /etc/openvpn/ta.key)\n</tls-auth>" >> /var/www/openvpn/OHPTCPConfig_EC.ovpn
 
 
 sed -i "s|IP-ADDRESS|$(ip_address)|g" /var/www/openvpn/UDPConfig_EC.ovpn
 echo -e "<ca>\n$(cat /etc/openvpn/ec_ca.crt)\n</ca>" >> /var/www/openvpn/UDPConfig_EC.ovpn
 echo -e "<cert>\n$(cat /etc/openvpn/bonvscripts.crt)\n</cert>" >> /var/www/openvpn/UDPConfig_EC.ovpn
 echo -e "<key>\n$(cat /etc/openvpn/bonvscripts.key)\n</key>" >> /var/www/openvpn/UDPConfig_EC.ovpn
+echo -e "<tls-auth>\n$(cat /etc/openvpn/ta.key)\n</tls-auth>" >> /var/www/openvpn/UDPConfig_EC.ovpn
 
 
 sed -i "s|IP-ADDRESS|$(ip_address)|g" /var/www/openvpn/SunNoloadConfig_EC.ovpn
 echo -e "<ca>\n$(cat /etc/openvpn/ec_ca.crt)\n</ca>" >> /var/www/openvpn/SunNoloadConfig_EC.ovpn
 echo -e "<cert>\n$(cat /etc/openvpn/bonvscripts.crt)\n</cert>" >> /var/www/openvpn/SunNoloadConfig_EC.ovpn
 echo -e "<key>\n$(cat /etc/openvpn/bonvscripts.key)\n</key>" >> /var/www/openvpn/SunNoloadConfig_EC.ovpn
+echo -e "<tls-auth>\n$(cat /etc/openvpn/ta.key)\n</tls-auth>" >> /var/www/openvpn/SunNoloadConfig_EC.ovpn
 
 
 sed -i "s|IP-ADDRESS|$(ip_address)|g" /var/www/openvpn/SunConfig_EC.ovpn
 echo -e "<ca>\n$(cat /etc/openvpn/ec_ca.crt)\n</ca>" >> /var/www/openvpn/SunConfig_EC.ovpn
 echo -e "<cert>\n$(cat /etc/openvpn/bonvscripts.crt)\n</cert>" >> /var/www/openvpn/SunConfig_EC.ovpn
 echo -e "<key>\n$(cat /etc/openvpn/bonvscripts.key)\n</key>" >> /var/www/openvpn/SunConfig_EC.ovpn
+echo -e "<tls-auth>\n$(cat /etc/openvpn/ta.key)\n</tls-auth>" >> /var/www/openvpn/SunConfig_EC.ovpn
 
 sed -i "s|OPENVPN_SERVER_VERSION|$(openvpn --version | cut -d" " -f2 | head -n1)|g" /var/www/openvpn/*.ovpn
 sed -i "s|OPENVPN_SERVER_LOCATION|$(curl -4s http://ipinfo.io/country), $(curl -4s http://ipinfo.io/region)|g" /var/www/openvpn/*.ovpn
