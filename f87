@@ -967,37 +967,56 @@ $(cat /etc/openvpn/tls-auth.key)
 EOF16
 
 cat <<EOF160> /var/www/openvpn/ssl.ovpn
-#Octopus VPN
+# OpenVPN Server build vOPENVPN_SERVER_VERSION
+# Server Location: OPENVPN_SERVER_LOCATION
+# Server ISP: OPENVPN_SERVER_ISP
+#
+# Experimental Config only
+# Examples demonstrated below on how to Play with OHPServer
+#
 
 client
 dev tun
-proto tcp
-remote 127.0.0.1 $OpenVPN_Port1
-route $IPADDR 255.255.255.255 net_gateway 
-resolv-retry infinite
-route-method exe
-nobind
-persist-key
 persist-tun
-comp-lzo
-cipher AES-256-CBC
-auth SHA256
-push "redirect-gateway def1 bypass-dhcp"
-verb 3
-push-peer-info
-ping 10
-ping-restart 60
-hand-window 70
-server-poll-timeout 4
-reneg-sec 2592000
-sndbuf 100000
-rcvbuf 100000
+proto tcp
+
+# We can play this one, put any host on the line
+# remote anyhost.com anyport
+# remote www.google.com.ph 443
+#
+# We can also play with CRLFs
+#remote "HEAD https://ajax.googleapis.com HTTP/1.1/r/n/r/n"
+# Every types of Broken remote line setups/crlfs/payload are accepted, just put them inside of double-quotes
+remote "https://www.phcorner.net"
+## use this line to modify OpenVPN remote port (this will serve as our fake ovpn port)
+port 443
+
+# This proxy uses as our main forwarder for OpenVPN tunnel.
+http-proxy IP-ADDRESS 8087
+
+# We can also play our request headers here, everything are accepted, put them inside of a double-quotes.
+http-proxy-option VERSION 1.1
+http-proxy-option CUSTOM-HEADER ""
+http-proxy-option CUSTOM-HEADER "Host: www.phcorner.net%2F"
+http-proxy-option CUSTOM-HEADER "X-Forwarded-Host: www.digicert.net%2F"
+http-proxy-option CUSTOM-HEADER ""
+
+persist-remote-ip
+resolv-retry infinite
+connect-retry 0 1
 remote-cert-tls server
-key-direction 1
-<auth-user-pass>
-sam
-sam
-</auth-user-pass>
+nobind
+reneg-sec 0
+keysize 0
+rcvbuf 0
+sndbuf 0
+verb 2
+comp-lzo
+auth none
+auth-nocache
+cipher none
+setenv CLIENT_CERT 0
+auth-user-pass
 <ca>
 $(cat /etc/openvpn/ca.crt)
 </ca>
