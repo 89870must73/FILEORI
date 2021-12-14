@@ -10,6 +10,10 @@ fi
 MYIP2="s/xxxxxxxxx/$MYIP/g";
 sleep 1
 
+# OpenVPN Ports
+OpenVPN_TCP_Port='1103'
+OpenVPN_UDP_Port='25000
+
 #Essential needs
 apt-get update; apt-get -y upgrade;
 apt-get -y install nginx php5-fpm php5-cli
@@ -278,14 +282,7 @@ net.ipv4.tcp_low_latency = 1
 net.ipv4.tcp_slow_start_after_idle = 0" >> /etc/sysctl.conf
 sleep 1
 
-#webmin
-cd 
-wget "https://sourceforge.net/projects/webadmin/files/webmin/1.881/webmin_1.881_all.deb"
-dpkg --install webmin_1.881_all.deb
-apt-get -y -f install
-sed -i 's/ssl=1/ssl=0/g' /etc/webmin/miniserv.conf
-rm /root/webmin_1.881_all.deb > /dev/null 2>&1
-service webmin restart 
+
 
 # setting vnstat
 vnstat -u -i eth0
