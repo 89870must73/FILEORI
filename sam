@@ -89,8 +89,8 @@ chmod +x /usr/bin/screenfetch
 echo "clear" >> .profile
 echo "screenfetch" >> .profile
 
-# install webserver
-cd
+# nginx
+apt-get -y install nginx php-fpm php-mcrypt php-cli libexpat1-dev libxml-parser-perl
 rm /etc/nginx/sites-enabled/default
 rm /etc/nginx/sites-available/default
 wget -O /etc/php/7.0/fpm/pool.d/www.conf "https://raw.githubusercontent.com/ehomecore/deb-ubun/master/www.conf"
@@ -101,7 +101,6 @@ wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/ehomecore/
 sed -i 's/listen = \/var\/run\/php7.0-fpm.sock/listen = 127.0.0.1:9000/g' /etc/php/7.0/fpm/pool.d/www.conf
 service nginx restart
 service php7.0-fpm restart
-
 
 # Installing OpenVPN by pulling its repository inside sources.list file
 rm -rf /etc/apt/sources.list.d/openvpn*
