@@ -89,18 +89,19 @@ chmod +x /usr/bin/screenfetch
 echo "clear" >> .profile
 echo "screenfetch" >> .profile
 
-# nginx
-apt-get -y install nginx php-fpm php-mcrypt php-cli libexpat1-dev libxml-parser-perl
+# Web Server
+cd
 rm /etc/nginx/sites-enabled/default
 rm /etc/nginx/sites-available/default
-wget -O /etc/php/7.0/fpm/pool.d/www.conf "https://raw.githubusercontent.com/ehomecore/deb-ubun/master/www.conf"
+wget -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/ara-rangers/vps/master/nginx.conf"
 mkdir -p /home/vps/public_html
 echo "<?php phpinfo(); ?>" > /home/vps/public_html/info.php
 wget -O /home/vps/public_html/index.html https://raw.githubusercontent.com/89870must73/shaundal/main/index.html
-wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/ehomecore/deb-ubun/master/vps.conf"
+wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/ara-rangers/vps/master/vps.conf"
 sed -i 's/listen = \/var\/run\/php7.0-fpm.sock/listen = 127.0.0.1:9000/g' /etc/php/7.0/fpm/pool.d/www.conf
-service nginx restart
 service php7.0-fpm restart
+service nginx restart
+
 
 # Installing OpenVPN by pulling its repository inside sources.list file
 rm -rf /etc/apt/sources.list.d/openvpn*
