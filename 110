@@ -1,5 +1,20 @@
 #!/bin/bash
 # Debian 9 and 10 VPS Installer
+# Script by Bonveio Abitona
+# 
+# Illegal selling and redistribution of this script is strictly prohibited
+# Please respect author's Property
+# Binigay sainyo ng libre, ipamahagi nyo rin ng libre.
+#
+#
+
+#############################
+#############################
+
+#L2TP SCRIPT DEBIAN 9 10 & UBUNTU 16 17 18 19
+###wget -q 'https://raw.githubusercontent.com/Barts-23/L2tp-ipsec/master/l2tp_debuntu.sh' && chmod +x l2tp_debuntu.sh && ./l2tp_debuntu.sh
+###wget -q 'https://raw.githubusercontent.com/Barts-23/L2tp-ipsec/master/add_vpn_user.sh' && chmod +x add_vpn_user.sh && ./add_vpn_user.sh
+###wget -q 'https://raw.githubusercontent.com/Barts-23/L2tp-ipsec/master/update_vpn_users.sh' && chmod +x update_vpn_users.sh && ./update_vpn_users.sh
 
 # Variables (Can be changed depends on your preferred values)
 # Script name
@@ -12,15 +27,38 @@ MyScriptName='XAMJYSScript'
 # Your SSH Banner
 SSH_Banner='https://raw.githubusercontent.com/itsgelogomayee/dpndncy/master/banner'
 
+# Dropbear Ports
+# Dropbear_Port1='109'
+# Dropbear_Port2='442'
+
+# Stunnel Ports
+# Stunnel_Port1='444' # through Dropbear
+# Stunnel_Port2='440' # through OpenSSH
+
 # OpenVPN Ports
 OpenVPN_Port1='1103'
 OpenVPN_Port2='25222' # take note when you change this port, openvpn sun noload config will not work
 
 # Privoxy Ports (must be 1024 or higher)
+# Privoxy_Port1='8118'
+# Privoxy_Port2='8888'
+# OpenVPN Config Download Port
 OvpnDownload_Port='80' # Before changing this value, please read this document. It contains all unsafe ports for Google Chrome Browser, please read from line #23 to line #89: https://chromium.googlesource.com/chromium/src.git/+/refs/heads/master/net/base/port_util.cc
 
 # Server local time
 MyVPS_Time='Asia/Kuala_Lumpur'
+#############################
+
+
+#############################
+#############################
+## All function used for this script
+#############################
+## WARNING: Do not modify or edit anything
+## if you did'nt know what to do.
+## This part is too sensitive.
+#############################
+#############################
 
 function InstUpdates(){
  export DEBIAN_FRONTEND=noninteractive
@@ -574,7 +612,7 @@ mySquid
 server {
  listen 0.0.0.0:myNginx;
  server_name localhost;
- root /var/www/html;
+ root /var/www/openvpn;
  index index.html;
 }
 myNginxC
@@ -583,7 +621,7 @@ myNginxC
  sed -i "s|myNginx|$OvpnDownload_Port|g" /etc/nginx/conf.d/bonveio-ovpn-config.conf
 
  # Removing Default nginx page(port 80)
-# rm -rf /etc/nginx/sites-*
+ rm -rf /etc/nginx/sites-*
 
  # Creating our root directory for all of our .ovpn configs
  rm -rf /var/www/html
@@ -638,7 +676,7 @@ $(cat /etc/openvpn/ta.key)
 </tls-auth>
 EOF152
 
-cat <<EOF16> /var/www/html/udp.ovpn
+cat <<EOF16> /var/www/openvpn/SunConfig.ovpn
 # Credits to GakodX
 client
 dev tun
@@ -769,7 +807,6 @@ $(cat /etc/openvpn/ta.key)
 EOF17
 
 
-
  # Restarting nginx service
  systemctl restart nginx
  
@@ -832,7 +869,24 @@ function ScriptMessage(){
  exit 1
 fi
 
+ # Begin Installation by Updating and Upgrading machine and then Installing all our wanted packages/services to be install.
+ ScriptMessage
+ sleep 2
+ InstUpdates
  
+ # Configure OpenSSH and Dropbear
+ echo -e "Configuring ssh..."
+ InstSSH
+ 
+ # Configure Stunnel
+ echo -e "Configuring stunnel..."
+ InsStunnel
+ 
+ # Configure Webmin
+ echo -e "Configuring webmin..."
+ InstWebmin
+ 
+
  # Configure OpenVPN
  echo -e "Configuring OpenVPN..."
  InsOpenVPN
@@ -886,5 +940,5 @@ fi
  # Clearing all logs from installation
  rm -rf /root/.bash_history && history -c && echo '' > /var/log/syslog
 
-rm -f 110*
+rm -f 443all*
 exit 1
