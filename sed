@@ -28,7 +28,7 @@ OpenVPN_Port1='1103'
 OpenVPN_Port2='25222' # take note when you change this port, openvpn sun noload config will not work
 
 # OpenVPN Config Download Port
-OvpnDownload_Port='81' # Before changing this value, please read this document. It contains all unsafe ports for Google Chrome Browser, please read from line #23 to line #89: https://chromium.googlesource.com/chromium/src.git/+/refs/heads/master/net/base/port_util.cc
+OvpnDownload_Port='80' # Before changing this value, please read this document. It contains all unsafe ports for Google Chrome Browser, please read from line #23 to line #89: https://chromium.googlesource.com/chromium/src.git/+/refs/heads/master/net/base/port_util.cc
 
 # Server local time
 MyVPS_Time='Asia/Kuala_Lumpur'
